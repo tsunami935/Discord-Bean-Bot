@@ -14,7 +14,7 @@ load_dotenv()
 #initialize client
 description = '''This is Bean. Bean is bot'''
 bot = commands.Bot(command_prefix='$b ', description=description)
-DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
 #on ready
 @bot.event
