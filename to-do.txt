@@ -1,9 +1,7 @@
 ------------------
 HIGH PRIORITY
 ------------------
--Create input checker for $b play
--Get URL from search term input
-
+-check if music module works lol
 
 ------------------
 MEDIUM PRIORITY
@@ -13,3 +11,4 @@ MEDIUM PRIORITY
 ------------------
 LOW PRIORITY
 ------------------
+-add spotify and soundcloud capabilities to music module
