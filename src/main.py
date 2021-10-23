@@ -14,7 +14,7 @@ load_dotenv()
 #initialize client
 description = '''This is Bean. Bean is bot'''
 bot = commands.Bot(command_prefix='s! ', description=description)
-TOKEN = os.getenv('DISCORD_TOKEN')
+DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 
 #on ready
 @bot.event
@@ -29,8 +29,35 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.queue = []
+    
+    async def __join(self, ctx):
+        '''Joins voice channel if possible'''
+        channel = ctx.message.author.voice.channel
+        if channel == None:
+            await ctx.send("You must be in a voice channel to play music!")
+        else:
+            voice = get(self.bot.voice_clients, guild=ctx.guild)
+            if voice and voice.is_connected():
+                await voice.move_to(channel)
+            else:
+                voice = await channel.connect()
 
     #play/add to queue
     @commands.command(name = "play")
     async def play(self, ctx, *source):
         '''Give URL or search term | sources: -y = YT, -s = Spotify, -c = Soundcloud (default: YT)'''
+        #determine if URL or search term
+            #if URL, check if valid
+            #else, check source
+                #get URL
+        #add song to queue
+
+    #stop
+    @commands.command(name = "stop")
+    async def stop(self, ctx):
+        '''Stops playing music and leaves the call'''
+        pass
+
+if(__name__ == "__main__"):
+    bot.add_cog(Music(bot))
+    bot.run(DISCORD_TOKEN)
