@@ -1,7 +1,8 @@
 ------------------
 HIGH PRIORITY
 ------------------
-
+-Create input checker for $b play
+-Get URL from search term input
 
 
 ------------------
