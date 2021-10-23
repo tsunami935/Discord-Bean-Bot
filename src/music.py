@@ -1,13 +1,12 @@
 import os
 from apiclient.discovery import build
 
-sources = {"-y": 0, "-s": 1, "-c": 2}
-valid_sources = ["https://www.youtube.com/watch?v=", "https://youtu.be/"]
-
 class MusicManager():
     def __init__(self):
         #initialize Youtube client
         self.youtube = build('youtube','v3', developerKey = os.getenv("GOOGLE_TOKEN"))
+        self.sources = {"-y": 0, "-s": 1, "-c": 2}
+        self.valid_sources = ["https://www.youtube.com/watch?v=", "https://youtu.be/"]
         self.get_URL = {
             0 : self.__get_YT_URL,
             1 : self.__get_spotify_URL,
@@ -16,9 +15,9 @@ class MusicManager():
 
     async def __find_source(self, input):
         try:
-            source = sources[input[-2:]]
+            source = self.sources[input[-2:]]
         except:
-            source = sources["-y"]
+            source = self.sources["-y"]
         return source
     
     async def __get_YT_URL(self, query):
@@ -34,11 +33,11 @@ class MusicManager():
 
     async def get_URL(self, input):
         '''checks input'''
-        for s in valid_sources:
+        for s in self.valid_sources:
             if input.startswith(s):
                 return input
         source = await self.__find_source(input)
-        URL = await get_URL[source](self, input[:-2])
+        URL = await self.get_URL[source](self, input[:-2])
         return URL
         
         
