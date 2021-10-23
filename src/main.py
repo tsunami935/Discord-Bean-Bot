@@ -58,6 +58,7 @@ class Music(commands.Cog):
         '''Stops playing music and leaves the call'''
         pass
 
+bot.add_cog(Music(bot))
+
 if(__name__ == "__main__"):
-    bot.add_cog(Music(bot))
     bot.run(DISCORD_TOKEN)
