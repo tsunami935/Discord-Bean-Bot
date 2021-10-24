@@ -16,16 +16,18 @@ class MusicManager():
     async def __find_source(self, input):
         try:
             source = self.__sources[input[-2:]]
+            return input, source
         except:
             source = self.__sources["-y"]
-        return source
+            return input + "-y", source
     
     async def __get_YT_URL(self, query):
         '''searches YouTube and returns URL of first result'''
-        search = await self.__youtube.search().list(q=query, type='video').execute()
+        search = self.__youtube.search().list(q=query, type="video", part="snippet").execute()
         try:
-            video_id = search["items"][0]["id"]["video_id"]
-            URL = __valid_sources[0] + video_id
+            print(f"YT query: {query}")
+            video_id = search["items"][0]["id"]["videoId"]
+            URL = self.__valid_sources[0] + video_id
             return URL
         except:
             return None
@@ -45,8 +47,8 @@ class MusicManager():
         for s in self.__valid_sources:
             if len(input) > len(s) and input.startswith(s):
                 return input
-        source = await self.__find_source(input)
-        URL = await self.__get_URL[source](self, input[:-2])
+        input, source = await self.__find_source(input)
+        URL = await self.__get_URL[source](input[:-2])
         return URL
         
         
