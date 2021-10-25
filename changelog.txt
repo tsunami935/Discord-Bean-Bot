@@ -2,3 +2,6 @@
 -project started
 -created src and started Music cog
 -added music.py and created MusicManager class with youtube search capabilities
+
+10/24/2021
+-Merging MusicManager class with Music cog
