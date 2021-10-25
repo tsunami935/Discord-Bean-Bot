@@ -1,12 +1,14 @@
 ------------------
 HIGH PRIORITY
 ------------------
--check if music module works lol
+-debug merged music module
+-debug audio connection
+-facilitate audio streaming
 
 ------------------
 MEDIUM PRIORITY
 ------------------
-
+-Allow play queue
 
 ------------------
 LOW PRIORITY
