@@ -5,3 +5,8 @@
 
 10/24/2021
 -Merging MusicManager class with Music cog
+
+10/27/2021
+-Debugged class merge
+-Bot gives itself green Bean role upon joining a server
+-Debugged play command (previously did not read entire argument string)
