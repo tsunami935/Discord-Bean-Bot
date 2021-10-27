@@ -1,9 +1,9 @@
 ------------------
 HIGH PRIORITY
 ------------------
--debug merged music module
 -debug audio connection
 -facilitate audio streaming
+-create event loop to play from queue
 
 ------------------
 MEDIUM PRIORITY
@@ -14,4 +14,3 @@ MEDIUM PRIORITY
 LOW PRIORITY
 ------------------
 -add spotify and soundcloud capabilities to music module
--let bot give itself green role
