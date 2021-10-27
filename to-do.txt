@@ -14,3 +14,4 @@ MEDIUM PRIORITY
 LOW PRIORITY
 ------------------
 -add spotify and soundcloud capabilities to music module
+-let bot give itself green role
