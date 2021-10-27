@@ -38,12 +38,13 @@ class Music(commands.Cog):
 
     #play/add to queue
     @commands.command(name = "play")
-    async def play(self, ctx, query):
+    async def play(self, ctx):
         '''$b justin beiber baby
         Give URL or search term | sources: -y = YT, -s = Spotify, -c = Soundcloud (default: YT)
         Note: -s and -c currently unsupported and may be added in the future
         Note: URLS or searches for playlists are not allowed'''
-        URL, source = self.get_URL(query)
+        query = ctx.message.content[3:]
+        URL, source = await self.get_URL(query)
         if URL == None:
             ctx.send("No results found :(")
         #add song to queue
@@ -53,7 +54,7 @@ class Music(commands.Cog):
                 "source": source,
                 "requester": ctx.author
             })
-            ctx.send(f"Added {URL} to queue [{len(self.queue)}]")
+            await ctx.send(f"Added {URL} to queue [{len(self.queue)}]")
 
     #stop
     @commands.command(name = "stop")
