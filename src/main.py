@@ -24,7 +24,10 @@ async def on_ready():
     await bot.change_presence(activity=activity)
     print(f'{bot.user.name} has connected successfully!')
 
-#music commands
+
+@bot.command()
+async def hi(ctx):
+    await ctx.send(f'Hi {ctx.message.author.mention}!')
 
 bot.add_cog(Music(bot))
 
