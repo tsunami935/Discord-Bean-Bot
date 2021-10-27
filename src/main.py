@@ -27,7 +27,8 @@ async def on_ready():
 @bot.event
 async def on_guild_join(guild):
     role = await guild.create_role(name="Bean", colour=0x67B664)
-    # await bot.guilds[guild.id].get_member(bot.user.id).addroles(role)
+    bot_user = guild.get_member(bot.user.id)
+    await bot_user.add_roles(role)
 
 @bot.command()
 async def hi(ctx):
