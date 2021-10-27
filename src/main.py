@@ -24,6 +24,10 @@ async def on_ready():
     await bot.change_presence(activity=activity)
     print(f'{bot.user.name} has connected successfully!')
 
+@bot.event
+async def on_guild_join(guild):
+    role = await guild.create_role(name="Bean", colour=0x67B664)
+    # await bot.guilds[guild.id].get_member(bot.user.id).addroles(role)
 
 @bot.command()
 async def hi(ctx):
