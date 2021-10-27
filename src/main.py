@@ -7,6 +7,8 @@ import discord
 from discord.ext import tasks, commands
 from discord.utils import get
 
+from music import Music
+
 #load environment variables
 load_dotenv()
 
