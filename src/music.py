@@ -32,17 +32,25 @@ class Music(commands.Cog):
             else:
                 voice = await channel.connect()
 
+    async def __play_to_channel(self, ctx):
+        voice = get(self.bot.voice_clients, guild=ctx.guild)
+        self.__join(ctx) # i guess?
+
     #play/add to queue
     @commands.command(name = "play")
     async def play(self, ctx, query):
-        '''Give URL or search term | sources: -y = YT, -s = Spotify, -c = Soundcloud (default: YT)'''
-        URL = self.get_URL(query)
+        '''$b justin beiber baby
+        Give URL or search term | sources: -y = YT, -s = Spotify, -c = Soundcloud (default: YT)
+        Note: -s and -c currently unsupported and may be added in the future
+        Note: URLS or searches for playlists are not allowed'''
+        URL, source = self.get_URL(query)
         if URL == None:
             ctx.send("No results found :(")
         #add song to queue
         else:
             self.queue.append({
                 "url" : URL,
+                "source": source,
                 "requester": ctx.author
             })
             ctx.send(f"Added {URL} to queue [{len(self.queue)}]")
@@ -90,7 +98,7 @@ class Music(commands.Cog):
                 return input
         input, source = await self.__find_source(input)
         URL = await self.__get_URL[source](input[:-2])
-        return URL
+        return URL, input[-2:]
 
 
 class MusicManager():
