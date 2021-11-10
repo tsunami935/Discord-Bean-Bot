@@ -8,7 +8,8 @@ HIGH PRIORITY
 MEDIUM PRIORITY
 ------------------
 -Deafen Bean
--Solve issue of using bot music capabilities in multiple servers
+-Solve issue of using bot music capabilities in multiple servers (probably refactoring of queue implementation)
+-Get bot to leave voice channel
 
 ------------------
 LOW PRIORITY
