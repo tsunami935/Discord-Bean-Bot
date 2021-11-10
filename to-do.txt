@@ -1,16 +1,17 @@
 ------------------
 HIGH PRIORITY
 ------------------
--debug audio connection
--facilitate audio streaming
--create event loop to play from queue
+-fix stack overflow in player
+    -create event loop to play from queue
 
 ------------------
 MEDIUM PRIORITY
 ------------------
--Allow play queue
+-Deafen Bean
+-Solve issue of using bot music capabilities in multiple servers
 
 ------------------
 LOW PRIORITY
 ------------------
 -add spotify and soundcloud capabilities to music module
+-add minigames
