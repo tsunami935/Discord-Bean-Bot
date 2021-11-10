@@ -8,6 +8,8 @@ HIGH PRIORITY
 MEDIUM PRIORITY
 ------------------
 -Deafen Bean
+-Skip Function
+-Allow URL input (fix lol)
 -Solve issue of using bot music capabilities in multiple servers (probably refactoring of queue implementation)
 -Get bot to leave voice channel
 
