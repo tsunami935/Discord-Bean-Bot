@@ -10,3 +10,7 @@
 -Debugged class merge
 -Bot gives itself green Bean role upon joining a server
 -Debugged play command (previously did not read entire argument string)
+
+11/8/2021
+-Bot voice connections
+-Queue implementation via recursion (this is bad)
