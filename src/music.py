@@ -1,5 +1,7 @@
 import os
+import asyncio
 from discord.ext import tasks, commands
+from discord import FFmpegPCMAudio
 from discord.utils import get
 from apiclient.discovery import build
 from youtube_dl import YoutubeDL
@@ -18,23 +20,48 @@ class Music(commands.Cog):
             1 : self.__get_spotify_URL,
             2 : self.__get_soundcloud_URL
         }
+        self.player = 0
     
+    async def __queuePlayer(self, ctx):
+        voice = get(self.bot.voice_clients, guild=ctx.guild)
+        if not len(self.queue) and not voice.is_playing():
+            await self.stop(ctx)
+            return
+        if not voice.is_playing():
+            song = self.queue.pop(0)
+            print(song)
+            YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
+            FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+            with YoutubeDL(YDL_OPTIONS) as ydl:
+                info = ydl.extract_info(song['url'], download=False)
+            URL = info['url']
+            try:
+                voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS))
+                voice.is_playing()
+            except:
+                self.player = 0
+                return
+            self.player = 1
+            await ctx.send(f"Now playing {song['url']}")
+        await self.__queuePlayer(ctx)
+
     async def __join(self, ctx):
         '''Joins voice channel if possible'''
         channel = ctx.message.author.voice.channel
         if channel == None:
             await ctx.send("You must be in a voice channel to play music!")
+            return 0
         else:
             voice = get(self.bot.voice_clients, guild=ctx.guild)
             if voice and voice.is_connected():
+                if voice.channel == channel:
+                    return 1
                 self.queue = [self.queue[-1]]
                 await voice.move_to(channel)
+                return 1
             else:
                 voice = await channel.connect()
-
-    async def __play_to_channel(self, ctx):
-        voice = get(self.bot.voice_clients, guild=ctx.guild)
-        self.__join(ctx) # i guess?
+                return 1
 
     #play/add to queue
     @commands.command(name = "play")
@@ -55,12 +82,22 @@ class Music(commands.Cog):
                 "requester": ctx.author
             })
             await ctx.send(f"Added {URL} to queue [{len(self.queue)}]")
+            await self.__join(ctx)
+            if not self.player:
+                await self.__queuePlayer(ctx) #make event loop async
+
 
     #stop
     @commands.command(name = "stop")
     async def stop(self, ctx):
         '''Stops playing music and leaves the call'''
-        pass
+        voice = get(self.bot.voice_clients, guild=ctx.guild)
+        if voice.is_playing():
+            print("is stopping")
+            voice.stop()
+            voice.disconnect()
+            self.queue = []
+        await ctx.send("Adios!")
 
     #private methods and utilities
     async def __find_source(self, input):
