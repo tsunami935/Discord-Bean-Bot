@@ -1,17 +1,16 @@
 ------------------
 HIGH PRIORITY
 ------------------
--fix stack overflow in player
-    -create event loop to play from queue
+-Deafen Bean
+-Skip Function
+-Have bot leave voice channel when there are no users in it
 
 ------------------
 MEDIUM PRIORITY
 ------------------
--Deafen Bean
--Skip Function
 -Allow URL input (fix lol)
 -Solve issue of using bot music capabilities in multiple servers (probably refactoring of queue implementation)
--Get bot to leave voice channel
+-Have bot leave voice channel due to inactivity
 
 ------------------
 LOW PRIORITY
