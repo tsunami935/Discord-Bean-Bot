@@ -8,6 +8,7 @@ from discord.ext import tasks, commands
 from discord.utils import get
 
 from music import Music
+from minigames import Minigames
 
 #load environment variables
 load_dotenv()
@@ -34,7 +35,12 @@ async def on_guild_join(guild):
 async def hi(ctx):
     await ctx.send(f'Hi {ctx.message.author.mention}!')
 
+@bot.command()
+async def bye(ctx):
+    await ctx.send(f'Bye {ctx.message.author.mention}!')
+
 bot.add_cog(Music(bot))
+bot.add_cog(Minigames(bot))
 
 if(__name__ == "__main__"):
     bot.run(DISCORD_TOKEN)
