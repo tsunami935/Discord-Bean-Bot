@@ -10,7 +10,7 @@ class Music(commands.Cog):
     '''music commands'''
     def __init__(self, bot):
         self.bot = bot
-        self.queue = []
+        self.queue = {}
         #initialize sources and clients
         self.__youtube = build('youtube','v3', developerKey = os.getenv("GOOGLE_TOKEN"))
         self.__sources = {"-y": 0, "-s": 1, "-c": 2}
@@ -20,15 +20,15 @@ class Music(commands.Cog):
             1 : self.__get_spotify_URL,
             2 : self.__get_soundcloud_URL
         }
-        self.player = 0
+        self.player = {}
     
     async def __queuePlayer(self, ctx):
         voice = get(self.bot.voice_clients, guild=ctx.guild)
-        if not len(self.queue) and not voice.is_playing():
+        if not len(self.queue[ctx.guild]) and not voice.is_playing(): #change self.queue to like self.queue[guild]
             await self.stop(ctx)
             return
         if not voice.is_playing():
-            song = self.queue.pop(0)
+            song = self.queue[ctx.guild].pop(0) #change self.queue to like self.queue[guild]
             print(song)
             YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
             FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
@@ -39,14 +39,14 @@ class Music(commands.Cog):
                 voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS))
                 voice.is_playing()
             except:
-                self.player = 0
+                self.player[ctx.guild] = 0 #change self.player to like self.player[guild]
                 return
-            self.player = 1
+            self.player[ctx.guild] = 1 #change self.player to like self.player[guild]
             await ctx.send(f"Now playing {song['url']}")
 
     async def __playerLoop(self, ctx):
-        while self.player:
-            if len(self.queue):
+        while self.player[ctx.guild]: #change self.player to like self.player[guild]
+            if len(self.queue): #change self.queue to like self.queue[guild]
                 await self.__queuePlayer(ctx)
             await asyncio.sleep(5)
 
@@ -64,7 +64,7 @@ class Music(commands.Cog):
         if voice and voice.is_connected():
             if voice.channel == channel:
                 return 1
-            self.queue = [self.queue[-1]]
+            self.queue[guild] = [self.queue[guild][-1]] #change self.queue to like self.queue[guild]
             await voice.move_to(channel)
             return 1
         else:
@@ -86,13 +86,13 @@ class Music(commands.Cog):
         else:
             join = await self.__join(ctx)
             if join:
-                self.queue.append({
+                self.queue[ctx.guild].append({ #change self.queue to like self.queue[guild]
                     "url" : URL,
                     "source": source,
                     "requester": ctx.author
                 })
-                if not self.player:
-                    self.player = 1
+                if not self.player[ctx.guild]: #change self.player to like self.player[guild]
+                    self.player[ctx.guild] = 1 #change self.player to like self.player[guild]
                     asyncio.create_task(self.__playerLoop(ctx))
                 else:
                     await ctx.send(f"Added {URL} to queue [{len(self.queue)}]")
@@ -106,8 +106,8 @@ class Music(commands.Cog):
             print("is stopping")
             voice.stop()
             await voice.disconnect()
-            self.queue = []
-            self.player = 0
+            self.queue[ctx.guild] = []
+            self.player[ctx.guild] = 0
             await ctx.send("Adios!")
 
     #private methods and utilities
