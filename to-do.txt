@@ -1,19 +1,15 @@
 ------------------
 HIGH PRIORITY
 ------------------
--Deafen Bean
--Skip Function
--Have bot leave voice channel when there are no users in it
 
 ------------------
 MEDIUM PRIORITY
 ------------------
--Allow URL input (fix lol)
--Solve issue of using bot music capabilities in multiple servers (probably refactoring of queue implementation)
--Have bot leave voice channel due to inactivity
+-Volume control
 
 ------------------
 LOW PRIORITY
 ------------------
 -add spotify and soundcloud capabilities to music module
+-add playlist capabilities
 -add minigames
