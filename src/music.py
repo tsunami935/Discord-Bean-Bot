@@ -1,16 +1,26 @@
 import os
 import asyncio
+from time import time
 from discord.ext import tasks, commands
-from discord import FFmpegPCMAudio
+from discord import FFmpegPCMAudio, PCMVolumeTransformer
 from discord.utils import get
 from apiclient.discovery import build
 from youtube_dl import YoutubeDL
+
+class Server_Instance():
+    def __init__(self):
+        self.default()
+    
+    def default(self):
+        self.queue = []
+        self.player = 0
+        self.pause = None
 
 class Music(commands.Cog):
     '''music commands'''
     def __init__(self, bot):
         self.bot = bot
-        self.queue = {}
+        self.guilds = {}
         #initialize sources and clients
         self.__youtube = build('youtube','v3', developerKey = os.getenv("GOOGLE_TOKEN"))
         self.__sources = {"-y": 0, "-s": 1, "-c": 2}
@@ -20,15 +30,17 @@ class Music(commands.Cog):
             1 : self.__get_spotify_URL,
             2 : self.__get_soundcloud_URL
         }
-        self.player = {}
     
     async def __queuePlayer(self, ctx):
         voice = get(self.bot.voice_clients, guild=ctx.guild)
-        if not len(self.queue[ctx.guild]) and not voice.is_playing(): #change self.queue to like self.queue[guild]
-            await self.stop(ctx)
-            return
-        if not voice.is_playing():
-            song = self.queue[ctx.guild].pop(0) #change self.queue to like self.queue[guild]
+        if self.guilds[ctx.guild.id].pause:
+            if time() - self.guilds[ctx.guild.id].pause >= 300:
+                await self.stop(ctx)
+                return
+        elif not len(self.guilds[ctx.guild.id].queue) and not voice.is_playing():
+            self.guilds[ctx.guild.id].pause = time()
+        elif not voice.is_playing():
+            song = self.guilds[ctx.guild.id].queue.pop(0)
             print(song)
             YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
             FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
@@ -39,15 +51,14 @@ class Music(commands.Cog):
                 voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS))
                 voice.is_playing()
             except:
-                self.player[ctx.guild] = 0 #change self.player to like self.player[guild]
+                self.guilds[ctx.guild.id].player = 0
                 return
-            self.player[ctx.guild] = 1 #change self.player to like self.player[guild]
+            self.guilds[ctx.guild.id].player = 1 
             await ctx.send(f"Now playing {song['url']}")
 
     async def __playerLoop(self, ctx):
-        while self.player[ctx.guild]: #change self.player to like self.player[guild]
-            if len(self.queue): #change self.queue to like self.queue[guild]
-                await self.__queuePlayer(ctx)
+        while self.guilds[ctx.guild.id].player: 
+            await self.__queuePlayer(ctx)
             await asyncio.sleep(5)
 
     async def __join(self, ctx):
@@ -64,11 +75,12 @@ class Music(commands.Cog):
         if voice and voice.is_connected():
             if voice.channel == channel:
                 return 1
-            self.queue[guild] = [self.queue[guild][-1]] #change self.queue to like self.queue[guild]
+            self.guilds[ctx.guild.id].queue = [self.guilds[ctx.guild.id].queue[-1]] 
             await voice.move_to(channel)
             return 1
         else:
             voice = await channel.connect()
+            await ctx.guild.change_voice_state(channel=channel, self_mute=False, self_deaf=True)
             return 1
 
     #play/add to queue
@@ -86,16 +98,47 @@ class Music(commands.Cog):
         else:
             join = await self.__join(ctx)
             if join:
-                self.queue[ctx.guild].append({ #change self.queue to like self.queue[guild]
+                if ctx.guild.id not in self.guilds:
+                    self.guilds[ctx.guild.id] = Server_Instance()
+                self.guilds[ctx.guild.id].queue.append({ 
                     "url" : URL,
                     "source": source,
                     "requester": ctx.author
                 })
-                if not self.player[ctx.guild]: #change self.player to like self.player[guild]
-                    self.player[ctx.guild] = 1 #change self.player to like self.player[guild]
+                if not self.guilds[ctx.guild.id].player: 
+                    self.guilds[ctx.guild.id].player = 1 
                     asyncio.create_task(self.__playerLoop(ctx))
                 else:
-                    await ctx.send(f"Added {URL} to queue [{len(self.queue)}]")
+                    await ctx.send(f"Added {URL} to queue [{len(self.guilds[ctx.guild.id].queue)}]")
+
+    #next
+    @commands.command(name = "next", aliases = ["skip"])
+    async def next(self, ctx):
+        '''Skips to the next song in queue if possible'''
+        if len(self.guilds[ctx.guild.id].queue):
+            voice = get(self.bot.voice_clients, guild=ctx.guild)
+            voice.stop()
+            await self.__queuePlayer(ctx)
+        else:
+            await ctx.send("There is no song to skip to. Try using 'stop' or 'pause' instead or adding another song to the queue.")
+
+    #pause
+    @commands.command(name = "pause")
+    async def pause(self, ctx):
+        '''Pauses the current song'''
+        voice = get(self.bot.voice_clients, guild=ctx.guild)
+        if voice and voice.is_playing():
+            voice.pause()
+            self.guilds[ctx.guild.id].pause = time()
+
+    #resume
+    @commands.command(name = "resume")
+    async def resume(self, ctx):
+        '''Resumes playing the current song'''
+        voice = get(self.bot.voice_clients, guild=ctx.guild)
+        if voice and voice.is_paused():
+            voice.resume()
+            self.guilds[ctx.guild.id].pause = None
 
     #stop
     @commands.command(name = "stop")
@@ -106,8 +149,7 @@ class Music(commands.Cog):
             print("is stopping")
             voice.stop()
             await voice.disconnect()
-            self.queue[ctx.guild] = []
-            self.player[ctx.guild] = 0
+            self.guilds[ctx.guild.id].default()
             await ctx.send("Adios!")
 
     #private methods and utilities
