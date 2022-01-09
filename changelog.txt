@@ -15,10 +15,15 @@
 -Bot voice connections
 -Queue implementation via recursion (this is bad)
 
-1/7/2021
+1/7/2022
 -Fixed multiple server queue implementation
 -Refactored queue and player dictionaries into single server_instance object
 -Added next feature
 -Bot deafens itself upon joining a channel
 -Bot leaves channel after 5 minutes of inactivity
 -Added pause/resume feature
+
+1/8/2022
+-Fixed pause/resume bug
+-Restructured queue player function
+-Added volume controls
