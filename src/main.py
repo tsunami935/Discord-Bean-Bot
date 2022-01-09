@@ -39,6 +39,14 @@ async def hi(ctx):
 async def bye(ctx):
     await ctx.send(f'Bye {ctx.message.author.mention}!')
 
+@bot.command()
+async def hentai(ctx):
+    '''hentai'''
+    val = ctx.message.content.strip("$b hentai ")
+    if not len(val):
+        val = ctx.message.author.mention
+    await ctx.send(f"{val} は 変質者 です!")
+
 bot.add_cog(Music(bot))
 bot.add_cog(Minigames(bot))
 
