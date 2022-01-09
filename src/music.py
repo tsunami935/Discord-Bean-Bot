@@ -15,6 +15,7 @@ class Server_Instance():
         self.queue = []
         self.player = 0
         self.pause = None
+        self.user_pause = False
 
 class Music(commands.Cog):
     '''music commands'''
@@ -33,28 +34,21 @@ class Music(commands.Cog):
     
     async def __queuePlayer(self, ctx):
         voice = get(self.bot.voice_clients, guild=ctx.guild)
+        if len(voice.channel.members) == 1:
+            await ctx.send("Leaving due to inactivity")
+            await self.stop(ctx)
         if self.guilds[ctx.guild.id].pause:
-            if time() - self.guilds[ctx.guild.id].pause >= 300:
+            if self.guilds[ctx.guild.id].user_pause == False and len(self.guilds[ctx.guild.id].queue):
+                self.guilds[ctx.guild.id].pause = False
+                await self.__playYT(voice, ctx)
+            elif time() - self.guilds[ctx.guild.id].pause >= 300:
+                await ctx.send("Leaving due to inactivity")
                 await self.stop(ctx)
                 return
         elif not len(self.guilds[ctx.guild.id].queue) and not voice.is_playing():
             self.guilds[ctx.guild.id].pause = time()
         elif not voice.is_playing():
-            song = self.guilds[ctx.guild.id].queue.pop(0)
-            print(song)
-            YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
-            FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
-            with YoutubeDL(YDL_OPTIONS) as ydl:
-                info = ydl.extract_info(song['url'], download=False)
-            URL = info['url']
-            try:
-                voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS))
-                voice.is_playing()
-            except:
-                self.guilds[ctx.guild.id].player = 0
-                return
-            self.guilds[ctx.guild.id].player = 1 
-            await ctx.send(f"Now playing {song['url']}")
+            await self.__playYT(voice, ctx)
 
     async def __playerLoop(self, ctx):
         while self.guilds[ctx.guild.id].player: 
@@ -75,7 +69,8 @@ class Music(commands.Cog):
         if voice and voice.is_connected():
             if voice.channel == channel:
                 return 1
-            self.guilds[ctx.guild.id].queue = [self.guilds[ctx.guild.id].queue[-1]] 
+            if len(self.guilds[ctx.guild.id].queue):
+                self.guilds[ctx.guild.id].queue = [self.guilds[ctx.guild.id].queue[-1]]
             await voice.move_to(channel)
             return 1
         else:
@@ -130,6 +125,7 @@ class Music(commands.Cog):
         if voice and voice.is_playing():
             voice.pause()
             self.guilds[ctx.guild.id].pause = time()
+            self.guilds[ctx.guild.id].user_pause = True
 
     #resume
     @commands.command(name = "resume")
@@ -139,6 +135,7 @@ class Music(commands.Cog):
         if voice and voice.is_paused():
             voice.resume()
             self.guilds[ctx.guild.id].pause = None
+            self.guilds[ctx.guild.id].user_pause = False
 
     #stop
     @commands.command(name = "stop")
@@ -151,6 +148,21 @@ class Music(commands.Cog):
             await voice.disconnect()
             self.guilds[ctx.guild.id].default()
             await ctx.send("Adios!")
+
+    #volume
+    @commands.command(name = "volume")
+    async def volume(self, ctx):
+        '''Adjust volume of the bot (1-100)'''
+        val = ctx.message.content.strip("$b volume ")
+        if val.isdigit():
+            voice = get(self.bot.voice_clients, guild=ctx.guild)
+            if hasattr(voice.source, "volume"):
+                voice.source.volume = int(val) / 100
+            else:
+                voice.source = PCMVolumeTransformer(voice.source, int(val) / 100)
+            await ctx.send(f"Volume set to {val}")
+            return
+        await ctx.send("Bot takes a value from 1-100")
 
     #private methods and utilities
     async def __find_source(self, input):
@@ -190,3 +202,20 @@ class Music(commands.Cog):
         input, source = await self.__find_source(input)
         URL = await self.__get_URL[source](input[:-2])
         return URL, input[-2:]
+
+    async def __playYT(self, voice, ctx):
+        song = self.guilds[ctx.guild.id].queue.pop(0)
+        print(song)
+        YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
+        FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+        with YoutubeDL(YDL_OPTIONS) as ydl:
+            info = ydl.extract_info(song['url'], download=False)
+        URL = info['url']
+        try:
+            voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS))
+            voice.is_playing()
+        except:
+            self.guilds[ctx.guild.id].player = 0
+            return
+        self.guilds[ctx.guild.id].player = 1 
+        await ctx.send(f"Now playing {song['url']}")
