@@ -1,15 +1,14 @@
 ------------------
 HIGH PRIORITY
 ------------------
+-add playlist capabilities
 
 ------------------
 MEDIUM PRIORITY
 ------------------
--Volume control
 
 ------------------
 LOW PRIORITY
 ------------------
--add spotify and soundcloud capabilities to music module
--add playlist capabilities
 -add minigames
+-add spotify and soundcloud capabilities
