@@ -31,52 +31,6 @@ class Music(commands.Cog):
             1 : self.__get_spotify_URL,
             2 : self.__get_soundcloud_URL
         }
-    
-    async def __queuePlayer(self, ctx):
-        voice = get(self.bot.voice_clients, guild=ctx.guild)
-        if len(voice.channel.members) == 1:
-            await ctx.send("Leaving due to inactivity")
-            await self.stop(ctx)
-        if self.guilds[ctx.guild.id].pause:
-            if self.guilds[ctx.guild.id].user_pause == False and len(self.guilds[ctx.guild.id].queue):
-                self.guilds[ctx.guild.id].pause = False
-                await self.__playYT(voice, ctx)
-            elif time() - self.guilds[ctx.guild.id].pause >= 300:
-                await ctx.send("Leaving due to inactivity")
-                await self.stop(ctx)
-                return
-        elif not len(self.guilds[ctx.guild.id].queue) and not voice.is_playing():
-            self.guilds[ctx.guild.id].pause = time()
-        elif not voice.is_playing():
-            await self.__playYT(voice, ctx)
-
-    async def __playerLoop(self, ctx):
-        while self.guilds[ctx.guild.id].player: 
-            await self.__queuePlayer(ctx)
-            await asyncio.sleep(5)
-
-    async def __join(self, ctx):
-        '''Joins voice channel if possible'''
-        try:
-            channel = ctx.message.author.voice.channel
-            if channel == None:
-                await ctx.send("You must be in a voice channel to play music!")
-                return 0
-        except:
-            await ctx.send("You must be in a voice channel to play music!")
-            return 0
-        voice = get(self.bot.voice_clients, guild=ctx.guild)
-        if voice and voice.is_connected():
-            if voice.channel == channel:
-                return 1
-            if len(self.guilds[ctx.guild.id].queue):
-                self.guilds[ctx.guild.id].queue = [self.guilds[ctx.guild.id].queue[-1]]
-            await voice.move_to(channel)
-            return 1
-        else:
-            voice = await channel.connect()
-            await ctx.guild.change_voice_state(channel=channel, self_mute=False, self_deaf=True)
-            return 1
 
     #play/add to queue
     @commands.command(name = "play")
@@ -152,19 +106,74 @@ class Music(commands.Cog):
     #volume
     @commands.command(name = "volume")
     async def volume(self, ctx):
-        '''Adjust volume of the bot (1-100)'''
+        '''Adjust volume of the bot (1-200) // $b volume will return current volume'''
         val = ctx.message.content.strip("$b volume ")
-        if val.isdigit():
-            voice = get(self.bot.voice_clients, guild=ctx.guild)
+        voice = get(self.bot.voice_clients, guild=ctx.guild)
+        if not voice:
+            return
+        if not len(val):
+            try:
+                curr = ((voice.source.volume) * 100) // 1
+            except:
+                curr = 100
+            await ctx.send(f"Current volume: {curr}%")
+            return
+        elif val.isdigit() and 0 <= int(val) <= 200:
             if hasattr(voice.source, "volume"):
                 voice.source.volume = int(val) / 100
             else:
                 voice.source = PCMVolumeTransformer(voice.source, int(val) / 100)
             await ctx.send(f"Volume set to {val}")
             return
-        await ctx.send("Bot takes a value from 1-100")
+        await ctx.send("Bot takes a value from 1-200")
 
     #private methods and utilities
+    async def __queuePlayer(self, ctx):
+        voice = get(self.bot.voice_clients, guild=ctx.guild)
+        if len(voice.channel.members) == 1:
+            await ctx.send("Leaving due to inactivity")
+            await self.stop(ctx)
+        if self.guilds[ctx.guild.id].pause:
+            if self.guilds[ctx.guild.id].user_pause == False and len(self.guilds[ctx.guild.id].queue):
+                self.guilds[ctx.guild.id].pause = False
+                await self.__playYT(voice, ctx)
+            elif time() - self.guilds[ctx.guild.id].pause >= 300:
+                await ctx.send("Leaving due to inactivity")
+                await self.stop(ctx)
+                return
+        elif not len(self.guilds[ctx.guild.id].queue) and not voice.is_playing():
+            self.guilds[ctx.guild.id].pause = time()
+        elif not voice.is_playing():
+            await self.__playYT(voice, ctx)
+
+    async def __playerLoop(self, ctx):
+        while self.guilds[ctx.guild.id].player: 
+            await self.__queuePlayer(ctx)
+            await asyncio.sleep(5)
+
+    async def __join(self, ctx):
+        '''Joins voice channel if possible'''
+        try:
+            channel = ctx.message.author.voice.channel
+            if channel == None:
+                await ctx.send("You must be in a voice channel to play music!")
+                return 0
+        except:
+            await ctx.send("You must be in a voice channel to play music!")
+            return 0
+        voice = get(self.bot.voice_clients, guild=ctx.guild)
+        if voice and voice.is_connected():
+            if voice.channel == channel:
+                return 1
+            if len(self.guilds[ctx.guild.id].queue):
+                self.guilds[ctx.guild.id].queue = [self.guilds[ctx.guild.id].queue[-1]]
+            await voice.move_to(channel)
+            return 1
+        else:
+            voice = await channel.connect()
+            await ctx.guild.change_voice_state(channel=channel, self_mute=False, self_deaf=True)
+            return 1
+
     async def __find_source(self, input):
         try:
             source = self.__sources[input[-2:]]
