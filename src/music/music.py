@@ -4,8 +4,10 @@ from time import time
 from discord.ext import tasks, commands
 from discord import FFmpegPCMAudio, PCMVolumeTransformer
 from discord.utils import get
-from apiclient.discovery import build
 from youtube_dl import YoutubeDL
+
+from youtube import Youtube_Client
+from spotify import Spotify_Client
 
 class Server_Instance():
     def __init__(self):
@@ -20,26 +22,19 @@ class Server_Instance():
 class Music(commands.Cog):
     '''music commands'''
     def __init__(self, bot):
-        self.bot = bot
-        self.guilds = {}
+        self.__bot = bot
+        self.__guilds = {}
         #initialize sources and clients
-        self.__youtube = build('youtube','v3', developerKey = os.getenv("GOOGLE_TOKEN"))
-        self.__sources = {"-y": 0, "-s": 1, "-c": 2}
-        self.__valid_sources = ["https://www.youtube.com/watch?v=", "https://youtu.be/"]
-        self.__get_URL = {
-            0 : self.__get_YT_URL,
-            1 : self.__get_spotify_URL,
-            2 : self.__get_soundcloud_URL
-        }
+        self.__youtube = YoutubeClient()
+        self.__spotify = SpotifyClient()
+        self.__valid_sources = ["https://www.youtube.com/watch?v=", "https://youtu.be/", "https://open.spotify.com/"]
 
     #play/add to queue
     @commands.command(name = "play")
     async def play(self, ctx):
-        '''$b justin beiber baby
-        Give URL or search term | sources: -y = YT, -s = Spotify, -c = Soundcloud (default: YT)
-        Note: -s and -c currently unsupported and may be added in the future
-        Note: URLS or searches for playlists are not allowed'''
-        query = ctx.message.content[8:]
+        '''Give URL or search term of song or URL of playlist
+        Note: Youtube playlists are currently unsupported'''
+        query = ctx.message.content.strip("$b play ")
         URL, source = await self.get_URL(query)
         if URL == None:
             await ctx.send("No results found :(")
