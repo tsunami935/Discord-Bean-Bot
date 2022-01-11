@@ -52,3 +52,4 @@ bot.add_cog(Minigames(bot))
 
 if(__name__ == "__main__"):
     bot.run(DISCORD_TOKEN)
+
