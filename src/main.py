@@ -7,7 +7,7 @@ import discord
 from discord.ext import tasks, commands
 from discord.utils import get
 
-from music import Music
+from music.music import Music
 from minigames import Minigames
 
 #load environment variables
@@ -52,3 +52,4 @@ bot.add_cog(Minigames(bot))
 
 if(__name__ == "__main__"):
     bot.run(DISCORD_TOKEN)
+

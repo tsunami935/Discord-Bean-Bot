@@ -5,6 +5,7 @@ class Minigames(commands.Cog):
     '''Fun minigames because why not'''
     def __init__(self, bot):
         self.bot = bot
+        #random.seed()
 
     @commands.command(name = "rock", aliases = ["paper", "scissors"])
     async def RPS(self, ctx):
