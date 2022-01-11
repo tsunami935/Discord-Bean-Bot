@@ -5,3 +5,4 @@ ffmpeg.exe
 invite.txt
 *.pyc
 src/tests.py
+.cache
