@@ -1,14 +1,12 @@
 ------------------
 HIGH PRIORITY
 ------------------
--add playlist capabilities
-
+-get a permanent server noob
 ------------------
 MEDIUM PRIORITY
 ------------------
-
+-add soundcloud capabilities
 ------------------
 LOW PRIORITY
 ------------------
 -add minigames
--add spotify and soundcloud capabilities
