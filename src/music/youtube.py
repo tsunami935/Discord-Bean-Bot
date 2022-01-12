@@ -1,4 +1,4 @@
-from youtubesearchpython.__future__ import VideosSearch
+from youtubesearchpython.__future__ import VideosSearch, Playlist
 import re
 
 class Youtube_Client:
@@ -15,7 +15,31 @@ class Youtube_Client:
             'length' : video['result'][0]['duration']
         }
 
+    async def get_playlist(self, playlist_link):
+        '''Returns a list of videos in a Youtube playlist given the playlist URL'''
+        try:
+            playlist = await Playlist.getVideos(playlist_link)
+            if len(playlist['videos']) == 0:
+                return [None]
+            res = []
+            for video in playlist['videos']:
+                res.append({
+                    'url' : video['link'],
+                    'title' : video['title'],
+                    'length' : video['duration']
+                })
+            return res
+        except:
+            return [None]
+
     #private methods
+    async def __check_privacy(self, link):
+        info = await Playlist.getInfo(link)
+        print(info)
+        if info:
+            return False
+        return True
+
     def __parse_title(self, title):
         for key in self.__strs.keys():
             if key in title:

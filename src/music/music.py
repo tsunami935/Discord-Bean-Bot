@@ -27,13 +27,18 @@ class Music(commands.Cog):
         #initialize sources and clients
         self.__youtube = Youtube_Client()
         self.__spotify = Spotify_Client()
-        self.__valid_sources = ["https://www.youtube.com/watch?v=", "https://youtu.be/", "https://open.spotify.com/"]
+        self.__valid_sources = {
+            "https://www.youtube.com/watch?v=" : self.__processYT, 
+            "https://youtu.be/" : self.__processYT, 
+            "https://www.youtube.com/playlist?list=" : self.__youtube.get_playlist, 
+            "https://open.spotify.com/" : self.__spotify_playlist
+        }
 
     #play/add to queue
     @commands.command(name = "play")
     async def play(self, ctx):
         '''Give URL or search term of song or URL of playlist
-        Note: Youtube playlists are currently unsupported'''
+        Note: Supports only YouTube and Spotify'''
         query = ctx.message.content.strip("$b play ")
         results = await self.get_URL(query) #
         if results[0] == None:
@@ -132,13 +137,14 @@ class Music(commands.Cog):
     @commands.command(name = "shuffle")
     async def queue_shuffle(self, ctx):
         '''Shuffles the queue'''
-        self.guilds[ctx.guild.id].queue.shuffle()
+        shuffle(self.guilds[ctx.guild.id].queue)
         await ctx.send("Queue shuffled")
 
     #private methods and utilities
     async def __queuePlayer(self, ctx):
         voice = get(self.bot.voice_clients, guild=ctx.guild)
-        if len(voice.channel.members) == 0:
+        if len(voice.channel.members) == 1:
+            print(len(voice.channel.members))
             await ctx.send("Leaving due to inactivity")
             await self.stop(ctx)
         if self.guilds[ctx.guild.id].pause:
@@ -184,16 +190,24 @@ class Music(commands.Cog):
 
     async def get_URL(self, input):
         '''Returns list of URLs'''
-        for s in self.__valid_sources[:2]: #direct YT video link
-            if len(input) > len(s) and input.startswith(s):
-                return [input]
-        for s in self.__valid_sources[2:]: #spotify links
-            if len(input) > len(s) and input.startswith(s):
-                queries = self.__spotify.process(input)
-                for i in range(len(queries)):
-                    queries[i] = await self.__youtube.search_video(queries[i])
-                return queries
+        for source in self.__valid_sources.keys():
+            if source in input and len(input) > len(source):
+                return await self.__valid_sources[source](input)
         return [await self.__youtube.search_video(input)] #YT search
+    
+    async def __processYT(self, input):
+        if "list=" in input:
+            if "index=" in input:
+                input = input[:-8]
+            return await self.__youtube.get_playlist("https://www.youtube.com/playlist?list=" + input[49:])
+        else:
+            return [await self.__youtube.search_video(input)]
+
+    async def __spotify_playlist(self, input):
+        queries = self.__spotify.process(input)
+        for i in range(len(queries)):
+            queries[i] = await self.__youtube.search_video(queries[i])
+        return queries
 
     async def __playYT(self, voice, ctx):
         song = self.guilds[ctx.guild.id].queue.pop(0)
