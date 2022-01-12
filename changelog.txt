@@ -27,3 +27,7 @@
 -Fixed pause/resume bug
 -Restructured queue player function
 -Added volume controls
+
+1/11/2022
+-Added spotify and playlist features
+-Restructured music package
