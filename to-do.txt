@@ -1,6 +1,7 @@
 ------------------
 HIGH PRIORITY
 ------------------
+-make sure bot doesn't try to access livestreams
 -get a permanent server noob
 ------------------
 MEDIUM PRIORITY

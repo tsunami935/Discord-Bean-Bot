@@ -6,3 +6,4 @@ invite.txt
 *.pyc
 src/tests.py
 .cache
+src/admin.py
