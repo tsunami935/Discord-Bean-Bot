@@ -34,9 +34,7 @@ class Youtube_Client:
 
     #private methods
     async def __check_privacy(self, link):
-        info = await Playlist.getInfo(link)
-        print(info)
-        if info:
+        if await Playlist.getInfo(link):
             return False
         return True
 
