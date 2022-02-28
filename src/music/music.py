@@ -143,6 +143,8 @@ class Music(commands.Cog):
     #private methods and utilities
     async def __queuePlayer(self, ctx):
         voice = get(self.bot.voice_clients, guild=ctx.guild)
+        if not voice:
+            return
         if len(voice.channel.members) == 1:
             print(len(voice.channel.members))
             await ctx.send("Leaving due to inactivity")
@@ -213,14 +215,23 @@ class Music(commands.Cog):
         song = self.guilds[ctx.guild.id].queue.pop(0)
         YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
         FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
-        with YoutubeDL(YDL_OPTIONS) as ydl:
-            info = ydl.extract_info(song['url'], download=False)
-        URL = info['url']
         try:
-            voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS))
-            voice.is_playing()
+            with YoutubeDL(YDL_OPTIONS) as ydl:
+                info = ydl.extract_info(song['url'], download=False)
+            URL = info['url']
+            try:
+                voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS))
+                voice.is_playing()
+            except:
+                await ctx.send(f"Unable to play [ **{song['title']}** ] `({song['length']})`")
+                #self.guilds[ctx.guild.id].player = 0
+                if len(self.guild[ctx.guild.id].queue):
+                    self.__playYT(voice, ctx)
+                return
+            self.guilds[ctx.guild.id].player = 1 
+            await ctx.send(f"Now playing [ **{song['title']}** ] `({song['length']})`")
         except:
-            self.guilds[ctx.guild.id].player = 0
+            await ctx.send(f"Unable to access [ **{song['title']}** ] `({song['length']})`")
+            if len(self.guilds[ctx.guild.id].queue):
+                self.__playYT(voice, ctx)
             return
-        self.guilds[ctx.guild.id].player = 1 
-        await ctx.send(f"Now playing [ **{song['title']}** ] `({song['length']})`")
